@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinsei — Experiencia Inmersiva & Rescate de Lo Extraordinario</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kinsei: {
+                            bg: '#0B0D12',
+                            darkCard: '#131722',
+                            gold: '#D4AF37',
+                            goldGlow: '#FFD700',
+                            ivory: '#F7F4EB',
+                            ash: '#8E94A0',
+                            accent: '#1D2433'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B0D12;
+            color: #F7F4EB;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Gold metallic text effect */
+        .gold-text {
+            background: linear-gradient(135deg, #FFF099 0%, #D4AF37 50%, #997A15 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Glow effects */
+        .gold-glow-box {
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .gold-glow-box:hover {
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.3);
+            border-color: rgba(255, 215, 0, 0.6);
+        }
+
+        /* Particles overlay canvas */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Glassmorphism panel */
+        .glass-panel {
+            background: rgba(19, 23, 34, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0D12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37;
+            border-radius: 3px;
+        }
+
+        /* Kintsugi Interactive Canvas */
+        #kintsugi-canvas {
+            cursor: crosshair;
+        }
+
+        /* Pulse animation */
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-kinsei-gold selection:text-kinsei-bg">
+
+    <!-- Canvas para Partículas Doradas de fondo global -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Notificación / Toast personalizable -->
+    <div id="toast" class="fixed bottom-8 right-8 z-50 transform translate-y-32 opacity-0 transition-all duration-500 glass-panel px-6 py-4 rounded-2xl flex items-center space-x-4 shadow-2xl border border-kinsei-gold">
+        <div class="w-10 h-10 rounded-full bg-kinsei-gold/20 flex items-center justify-center text-kinsei-gold text-lg shrink-0">
+            <i class="fa-solid fa-dove"></i>
+        </div>
+        <div>
+            <h5 class="font-serif font-bold text-kinsei-gold text-sm" id="toast-title">Kinsei Experience</h5>
+            <p id="toast-msg" class="text-xs text-gray-300"></p>
+        </div>
+    </div>
+
+    <!-- Navegación Flotante -->
+    <header class="fixed top-0 left-0 w-full z-40 bg-kinsei-bg/80 backdrop-blur-md border-b border-kinsei-gold/20">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 rounded-full bg-kinsei-gold/10 border border-kinsei-gold/40 flex items-center justify-center text-kinsei-gold group-hover:rotate-45 transition-transform duration-500">
+                    <i class="fa-solid fa-dove text-lg"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-serif text-2xl font-bold tracking-widest gold-text">KINSEI</span>
+                    <span class="text-[8px] tracking-[0.3em] uppercase text-kinsei-gold font-semibold">Lo bueno vuelve</span>
+                </div>
+            </a>
+            
+            <nav class="hidden lg:flex items-center space-x-8 text-xs font-semibold tracking-widest uppercase text-kinsei-ash">
+                <a href="#grulla-3d" class="hover:text-kinsei-gold transition-colors">Grulla Origami</a>
+                <a href="#simulador" class="hover:text-kinsei-gold transition-colors">Simulador Kintsugi</a>
+                <a href="#escaparate" class="hover:text-kinsei-gold transition-colors">Dead Stock</a>
+                <a href="#test-nostalgia" class="hover:text-kinsei-gold transition-colors">Buscador</a>
+                <a href="#talleres" class="hover:text-kinsei-gold transition-colors">Artesanía</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <!-- Botón de Audio Ambiental -->
+                <button id="audio-btn" onclick="toggleAudio()" class="w-10 h-10 rounded-full bg-kinsei-darkCard border border-kinsei-gold/40 text-kinsei-gold flex items-center justify-center hover:bg-kinsei-gold hover:text-kinsei-bg transition-all" title="Activar/Desactivar Sonido Ambiental Synthetized">
+                    <i class="fa-solid fa-volume-xmark" id="audio-icon"></i>
+                </button>
+
+                <button onclick="triggerToast('Bienvenido a Kinsei', 'Siente el arte de rescatar lo que el mundo olvidó.')" class="hidden sm:inline-flex px-5 py-2.5 rounded-full border border-kinsei-gold/50 text-kinsei-gold hover:bg-kinsei-gold hover:text-kinsei-bg text-xs font-semibold uppercase tracking-wider transition-all duration-300">
+                    Manifiesto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION + GRULLA 3D INTERACTIVA -->
+    <section id="grulla-3d" class="relative min-h-screen pt-28 pb-16 px-6 flex items-center justify-center overflow-hidden">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-20">
+            
+            <!-- Columna Texto Hero -->
+            <div class="lg:col-span-6 space-y-8 text-left">
+                <div class="inline-flex items-center space-x-3 px-4 py-2 rounded-full glass-panel text-kinsei-gold text-xs uppercase tracking-[0.25em] font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-kinsei-goldGlow animate-ping"></span>
+                    <span>Kintsugi (金継ぎ) + Jinsei (人生)</span>
+                </div>
+
+                <h1 class="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-kinsei-ivory leading-[1.08]">
+                    El valor de lo que el mundo <span class="italic gold-text">dejó atrás.</span>
+                </h1>
+
+                <p class="text-base sm:text-lg text-kinsei-ash font-light leading-relaxed max-w-xl">
+                    Tienda especializada en rescatar e interactuar con <strong class="text-kinsei-ivory font-medium">dead stock</strong> de distribuidores: zapatillas retiradas, herramientas de cocina descontinuadas y componentes mecánicos vintage. Piezas 100% originales e impolutas.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 pt-2">
+                    <a href="#simulador" class="px-8 py-4 rounded-full bg-kinsei-gold text-kinsei-bg font-semibold text-xs uppercase tracking-widest hover:bg-kinsei-goldGlow transition-all shadow-lg text-center">
+                        Probar Simulador Kintsugi
+                    </a>
+                    <a href="#escaparate" class="px-8 py-4 rounded-full glass-panel text-kinsei-ivory hover:border-kinsei-gold font-semibold text-xs uppercase tracking-widest transition-all text-center">
+                        Explorar Galería Deadstock
+                    </a>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-6 pt-8 border-t border-kinsei-gold/20">
+                    <div>
+                        <span class="block font-serif text-3xl font-bold gold-text">1,000</span>
+                        <span class="text-[10px] text-kinsei-ash uppercase tracking-wider">Años de vida (Grulla)</span>
+                    </div>
+                    <div>
+                        <span class="block font-serif text-3xl font-bold gold-text">100%</span>
+                        <span class="text-[10px] text-kinsei-ash uppercase tracking-wider">Stock Muerto Original</span>
+                    </div>
+                    <div>
+                        <span class="block font-serif text-3xl font-bold gold-text">28-55</span>
+                        <span class="text-[10px] text-kinsei-ash uppercase tracking-wider">Edad Público Nicho</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Canvas 3D Grulla Origami Real -->
+            <div class="lg:col-span-6 relative flex flex-col items-center justify-center">
+                <div class="w-full aspect-square max-w-lg rounded-3xl glass-panel p-4 relative overflow-hidden flex items-center justify-center shadow-2xl border border-kinsei-gold/30">
+                    <!-- Canvas de Three.js -->
+                    <div id="three-container" class="w-full h-full rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing"></div>
+                    
+                    <!-- Overlay tooltip interactivo -->
+                    <div class="absolute bottom-6 left-6 right-6 pointer-events-none flex justify-between items-center bg-kinsei-bg/80 backdrop-blur-md px-4 py-3 rounded-xl border border-kinsei-gold/30">
+                        <span class="text-xs text-kinsei-ivory flex items-center space-x-2">
+                            <i class="fa-solid fa-hand-pointer text-kinsei-gold animate-bounce"></i>
+                            <span>Arrastra para rotar la Grulla Origami 3D</span>
+                        </span>
+                        <button onclick="refoldCrane()" class="pointer-events-auto text-[10px] uppercase font-bold text-kinsei-gold hover:underline">
+                            Volver a Plegar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SIMULADOR INTERACTIVO DE KINTSUGI -->
+    <section id="simulador" class="py-28 px-6 bg-kinsei-darkCard border-y border-kinsei-gold/20 relative">
+        <div class="max-w-7xl mx-auto space-y-12">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4">
+                <span class="text-xs uppercase tracking-[0.3em] text-kinsei-gold font-bold">Módulo Interactivo</span>
+                <h2 class="font-serif text-4xl sm:text-5xl font-bold text-kinsei-ivory">Simulador de Kintsugi</h2>
+                <p class="text-sm text-kinsei-ash font-light">
+                    Arrastra el cursor sobre las grietas del objeto cerámico para restaurarlas con hilo de oro líquido. Completa la reparación para revelar la historia del producto rescatado.
+                </p>
+            </div>
+
+            <!-- Area del simulador -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                <!-- Canvas de Reparación -->
+                <div class="lg:col-span-8 glass-panel p-6 rounded-3xl relative overflow-hidden flex flex-col items-center justify-center">
+                    <div class="relative w-full max-w-xl aspect-square rounded-2xl overflow-hidden bg-black/50 border border-kinsei-gold/30 flex items-center justify-center">
+                        
+                        <!-- Canvas 2D interactivo -->
+                        <canvas id="kintsugi-canvas" width="600" height="600" class="w-full h-full object-contain"></canvas>
+
+                        <!-- Indicador de Progreso -->
+                        <div class="absolute top-4 left-4 bg-kinsei-bg/80 backdrop-blur-md px-4 py-2 rounded-full border border-kinsei-gold/40 text-xs font-semibold text-kinsei-gold flex items-center space-x-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span id="repair-progress">Progreso: 0%</span>
+                        </div>
+
+                        <!-- Botón para reiniciar grieta -->
+                        <button onclick="resetKintsugi()" class="absolute top-4 right-4 bg-kinsei-bg/80 hover:bg-kinsei-gold hover:text-kinsei-bg text-kinsei-gold px-4 py-2 rounded-full border border-kinsei-gold/40 text-xs font-semibold transition-all">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Reiniciar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Revelación de Historia / Recompensa -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div id="repair-card" class="glass-panel p-8 rounded-3xl space-y-6 border border-kinsei-gold/30 relative">
+                        <div class="w-12 h-12 rounded-2xl bg-kinsei-gold/20 text-kinsei-gold flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-box-archive" id="repair-icon"></i>
+                        </div>
+                        <h3 class="font-serif text-2xl font-bold text-kinsei-ivory" id="repair-title">Objeto Encriptado</h3>
+                        <p class="text-xs text-kinsei-ash leading-relaxed font-light" id="repair-desc">
+                            Traza líneas de oro sobre las fracturas visibles en el simulador para desbloquear la ficha técnica de este tesoro rescatado del olvido industrial.
+                        </p>
+                        
+                        <div id="repair-details" class="hidden space-y-3 pt-4 border-t border-kinsei-gold/20">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-kinsei-ash">Categoría:</span>
+                                <span class="text-kinsei-gold font-semibold">Molde Descontinuado</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-kinsei-ash">Estado:</span>
+                                <span class="text-kinsei-gold font-semibold">100% Nuevo / Stock Muerto</span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-kinsei-ash">Origen:</span>
+                                <span class="text-kinsei-gold font-semibold">Almacén Central (1991)</span>
+                            </div>
+                            <button onclick="triggerToast('Pieza Desbloqueada', 'Has dominado el arte del Kintsugi.')" class="w-full py-3 rounded-xl bg-kinsei-gold text-kinsei-bg font-bold text-xs uppercase tracking-wider hover:bg-kinsei-goldGlow transition-all">
+                                Reclamar Ficha de Reserva
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- EXPOSICIÓN DINÁMICA DE PRODUCTOS (GALERÍA CON FILTROS) -->
+    <section id="escaparate" class="py-28 px-6 max-w-7xl mx-auto space-y-16">
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+            <span class="text-xs uppercase tracking-[0.3em] text-kinsei-gold font-bold">Catálogo de Rescate</span>
+            <h2 class="font-serif text-4xl sm:text-5xl font-bold text-kinsei-ivory">Exposición Dead Stock</h2>
+            <p class="text-sm text-kinsei-ash font-light">Piezas originales descatalogadas que el mercado masivo dejó de fabricar. No vendemos segunda mano; vendemos piezas intactas.</p>
+
+            <!-- Filtros de categoría -->
+            <div class="flex flex-wrap justify-center gap-3 pt-6">
+                <button onclick="filterGallery('all')" id="filter-all" class="px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-kinsei-gold text-kinsei-bg transition-all">Todos los Hallazgos</button>
+                <button onclick="filterGallery('zapatillas')" id="filter-zapatillas" class="px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider glass-panel text-kinsei-ivory hover:border-kinsei-gold transition-all">Zapatillas Icónicas</button>
+                <button onclick="filterGallery('cocina')" id="filter-cocina" class="px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider glass-panel text-kinsei-ivory hover:border-kinsei-gold transition-all">Herramientas Cocina</button>
+                <button onclick="filterGallery('vintage')" id="filter-vintage" class="px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider glass-panel text-kinsei-ivory hover:border-kinsei-gold transition-all">Componentes Vintage</button>
+            </div>
+        </div>
+
+        <!-- Grid de Tarjetas -->
+        <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- Producto 1 -->
+            <div class="gallery-item glass-panel rounded-3xl p-6 gold-glow-box flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 group" data-category="zapatillas">
+                <div>
+                    <div class="relative h-64 rounded-2xl overflow-hidden mb-6 bg-black/60 flex items-center justify-center">
+                        <img src="https://placehold.co/600x400/131722/D4AF37?text=Zapatillas+Retiradas+1994" alt="Zapatillas Retiradas" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <span class="absolute top-4 left-4 bg-kinsei-bg/80 backdrop-blur-md border border-kinsei-gold/40 text-kinsei-gold text-[10px] uppercase font-bold px-3 py-1 rounded-full">Zapatillas</span>
+                    </div>
+                    <h3 class="font-serif text-2xl font-bold text-kinsei-ivory mb-2">Retro Runner Edición '94</h3>
+                    <p class="text-xs text-kinsei-ash leading-relaxed mb-4 font-light">Forma anatómica original y materiales técnicos de amortiguación no reeditados. Stock virgen conservado en caja.</p>
+                </div>
+                <div class="flex items-center justify-between pt-4 border-t border-kinsei-gold/20">
+                    <span class="font-serif text-lg font-bold gold-text">Pieza Única</span>
+                    <button onclick="triggerToast('Reserva Iniciada', 'Has guardado una zapatilla de archivo original.')" class="px-4 py-2 rounded-xl bg-kinsei-gold/20 text-kinsei-gold hover:bg-kinsei-gold hover:text-kinsei-bg text-xs font-semibold uppercase tracking-wider transition-all">
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Producto 2 -->
+            <div class="gallery-item glass-panel rounded-3xl p-6 gold-glow-box flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 group" data-category="cocina">
+                <div>
+                    <div class="relative h-64 rounded-2xl overflow-hidden mb-6 bg-black/60 flex items-center justify-center">
+                        <img src="https://placehold.co/600x400/131722/D4AF37?text=Hierro+Fundido+1988" alt="Sartén de Hierro Fundido" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <span class="absolute top-4 left-4 bg-kinsei-bg/80 backdrop-blur-md border border-kinsei-gold/40 text-kinsei-gold text-[10px] uppercase font-bold px-3 py-1 rounded-full">Cocina</span>
+                    </div>
+                    <h3 class="font-serif text-2xl font-bold text-kinsei-ivory mb-2">Sartén Hierro Forjado '88</h3>
+                    <p class="text-xs text-kinsei-ash leading-relaxed mb-4 font-light">Herramienta gastronómica hecha para durar generaciones. Fabricación descontinuada por cierre de fundición artesanal.</p>
+                </div>
+                <div class="flex items-center justify-between pt-4 border-t border-kinsei-gold/20">
+                    <span class="font-serif text-lg font-bold gold-text">Stock Virgin</span>
+                    <button onclick="triggerToast('Reserva Iniciada', 'Sartén de hierro fundido de lote histórico.')" class="px-4 py-2 rounded-xl bg-kinsei-gold/20 text-kinsei-gold hover:bg-kinsei-gold hover:text-kinsei-bg text-xs font-semibold uppercase tracking-wider transition-all">
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Producto 3 -->
+            <div class="gallery-item glass-panel rounded-3xl p-6 gold-glow-box flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 group" data-category="vintage">
+                <div>
+                    <div class="relative h-64 rounded-2xl overflow-hidden mb-6 bg-black/60 flex items-center justify-center">
+                        <img src="https://placehold.co/600x400/131722/D4AF37?text=Reloj+Mecanico+Precision" alt="Mecanismo Vintage" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <span class="absolute top-4 left-4 bg-kinsei-bg/80 backdrop-blur-md border border-kinsei-gold/40 text-kinsei-gold text-[10px] uppercase font-bold px-3 py-1 rounded-full">Vintage</span>
+                    </div>
+                    <h3 class="font-serif text-2xl font-bold text-kinsei-ivory mb-2">Componente Mecánico Óptico</h3>
+                    <p class="text-xs text-kinsei-ash leading-relaxed mb-4 font-light">Pieza analógica de alta precisión electromecánica. Sellado original de fábrica en Japón.</p>
+                </div>
+                <div class="flex items-center justify-between pt-4 border-t border-kinsei-gold/20">
+                    <span class="font-serif text-lg font-bold gold-text">Colección</span>
+                    <button onclick="triggerToast('Reserva Iniciada', 'Componente óptico analógico en custodia.')" class="px-4 py-2 rounded-xl bg-kinsei-gold/20 text-kinsei-gold hover:bg-kinsei-gold hover:text-kinsei-bg text-xs font-semibold uppercase tracking-wider transition-all">
+                        Solicitar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- TEST INTERACTIVO / BUSCADOR DE NOSTALGIA -->
+    <section id="test-nostalgia" class="py-28 px-6 bg-kinsei-darkCard border-y border-kinsei-gold/20 relative">
+        <div class="max-w-4xl mx-auto space-y-12">
+            <div class="text-center space-y-4">
+                <span class="text-xs uppercase tracking-[0.3em] text-kinsei-gold font-bold">Diagnóstico Emocional</span>
+                <h2 class="font-serif text-4xl sm:text-5xl font-bold text-kinsei-ivory">Buscador de Nostalgia</h2>
+                <p class="text-sm text-kinsei-ash font-light">Responde 3 breves preguntas para que nuestro algoritmo de memoria sugiera la pieza exacta que estabas echando de menos.</p>
+            </div>
+
+            <div class="glass-panel p-8 sm:p-12 rounded-3xl border border-kinsei-gold/30 space-y-8" id="quiz-container">
+                
+                <!-- Pregunta activa -->
+                <div id="quiz-step" class="space-y-6">
+                    <div class="flex justify-between items-center text-xs text-kinsei-gold font-semibold uppercase tracking-wider">
+                        <span id="quiz-progress-text">Paso 1 de 2</span>
+                        <div class="w-32 h-1.5 bg-black/40 rounded-full overflow-hidden">
+                            <div id="quiz-progress-bar" class="h-full bg-kinsei-gold transition-all duration-300 w-1/2"></div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-serif text-2xl font-bold text-kinsei-ivory" id="quiz-question">
+                        ¿Qué sensación buscas recuperar en tu vida cotidiana?
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="quiz-options">
+                        <!-- Opciones dinámicas inyectadas por JS -->
+                    </div>
+                </div>
+
+                <!-- Resultado del quiz -->
+                <div id="quiz-result" class="hidden text-center space-y-6 py-6">
+                    <div class="w-16 h-16 mx-auto rounded-full bg-kinsei-gold/20 text-kinsei-gold flex items-center justify-center text-3xl">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <span class="text-xs uppercase tracking-[0.25em] text-kinsei-gold font-bold block">Tu Recomendación Recomendada</span>
+                    <h3 class="font-serif text-3xl font-bold text-kinsei-ivory" id="result-title">Zapatillas Retro Runner 1994</h3>
+                    <p class="text-xs text-kinsei-ash max-w-md mx-auto leading-relaxed" id="result-desc">
+                        Basado en tus preferencias estéticas y tu búsqueda de autenticidad técnica, este hallazgo descontinuado encaja a la perfección con tu criterio.
+                    </p>
+                    <div class="pt-4 flex justify-center space-x-4">
+                        <button onclick="resetQuiz()" class="px-6 py-3 rounded-full border border-kinsei-gold/40 text-kinsei-gold hover:bg-kinsei-gold hover:text-kinsei-bg text-xs font-semibold uppercase tracking-wider transition-all">
+                            Reiniciar Test
+                        </button>
+                        <button onclick="triggerToast('Recomendación Guardada', 'Hemos registrado tu perfil de nostalgia.')" class="px-6 py-3 rounded-full bg-kinsei-gold text-kinsei-bg font-semibold text-xs uppercase tracking-wider hover:bg-kinsei-goldGlow transition-all">
+                            Reservar Esta Pieza
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE TALLERES Y IMPACTO ARTESANAL INTERACTIVO -->
+    <section id="talleres" class="py-28 px-6 max-w-7xl mx-auto space-y-16">
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+            <span class="text-xs uppercase tracking-[0.3em] text-kinsei-gold font-bold">Sensibilización & Formación</span>
+            <h2 class="font-serif text-4xl sm:text-5xl font-bold text-kinsei-ivory">Talleres y Red Artesanal</h2>
+            <p class="text-sm text-kinsei-ash font-light">Colaboramos con negocios artesanales que quedan solapados por grandes industrias, brindándoles alcance y espacios para transmitir sus oficios.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Taller 1 -->
+            <div class="glass-panel p-8 rounded-3xl space-y-6 border border-kinsei-gold/30 hover:border-kinsei-gold transition-all duration-300">
+                <div class="w-14 h-14 rounded-2xl bg-kinsei-gold/20 text-kinsei-gold flex items-center justify-center text-2xl">
+                    <i class="fa-solid fa-shirt"></i>
+                </div>
+                <h3 class="font-serif text-2xl font-bold text-kinsei-ivory">Confección & Textiles</h3>
+                <p class="text-xs text-kinsei-ash leading-relaxed font-light">
+                    Talleres prácticos sobre confección de ropa de alta durabilidad impartidos por maestros sastres independientes.
+                </p>
+                <div class="pt-4 border-t border-kinsei-gold/20 flex justify-between items-center">
+                    <span class="text-[10px] uppercase font-bold text-kinsei-gold">12 Plazas disponibles</span>
+                    <button onclick="triggerToast('Inscripción Registrada', 'Te enviamos la información del taller textil.')" class="text-xs text-kinsei-ivory hover:text-kinsei-gold font-semibold">Unirse →</button>
+                </div>
+            </div>
+
+            <!-- Taller 2 -->
+            <div class="glass-panel p-8 rounded-3xl space-y-6 border border-kinsei-gold/30 hover:border-kinsei-gold transition-all duration-300">
+                <div class="w-14 h-14 rounded-2xl bg-kinsei-gold/20 text-kinsei-gold flex items-center justify-center text-2xl">
+                    <i class="fa-solid fa-puzzle-piece"></i>
+                </div>
+                <h3 class="font-serif text-2xl font-bold text-kinsei-ivory">Juguetes de Madera</h3>
+                <p class="text-xs text-kinsei-ash leading-relaxed font-light">
+                    Diseño y torneado de juguetes clásicos perdurables sin plásticos ni componentes desechables.
+                </p>
+                <div class="pt-4 border-t border-kinsei-gold/20 flex justify-between items-center">
+                    <span class="text-[10px] uppercase font-bold text-kinsei-gold">8 Plazas disponibles</span>
+                    <button onclick="triggerToast('Inscripción Registrada', 'Te enviamos la información del taller de madera.')" class="text-xs text-kinsei-ivory hover:text-kinsei-gold font-semibold">Unirse →</button>
+                </div>
+            </div>
+
+            <!-- Taller 3 -->
+            <div class="glass-panel p-8 rounded-3xl space-y-6 border border-kinsei-gold/30 hover:border-kinsei-gold transition-all duration-300">
+                <div class="w-14 h-14 rounded-2xl bg-kinsei-gold/20 text-kinsei-gold flex items-center justify-center text-2xl">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <h3 class="font-serif text-2xl font-bold text-kinsei-ivory">Utensilios & Cerámica</h3>
+                <p class="text-xs text-kinsei-ash leading-relaxed font-light">
+                    Modelado de herramientas de cocina y técnicas básicas de reparación estilo Kintsugi.
+                </p>
+                <div class="pt-4 border-t border-kinsei-gold/20 flex justify-between items-center">
+                    <span class="text-[10px] uppercase font-bold text-kinsei-gold">15 Plazas disponibles</span>
+                    <button onclick="triggerToast('Inscripción Registrada', 'Te enviamos la información del taller cerámico.')" class="text-xs text-kinsei-ivory hover:text-kinsei-gold font-semibold">Unirse →</button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-black text-kinsei-ivory py-16 px-6 border-t border-kinsei-gold/20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-kinsei-gold/10 border border-kinsei-gold/40 flex items-center justify-center text-kinsei-gold">
+                    <i class="fa-solid fa-dove"></i>
+                </div>
+                <div>
+                    <span class="font-serif text-2xl font-bold tracking-widest gold-text">KINSEI</span>
+                    <p class="text-[10px] text-kinsei-ash">Kintsugi + Jinsei — Lo bueno vuelve</p>
+                </div>
+            </div>
+
+            <p class="text-xs text-kinsei-ash text-center">
+                &copy; 2026 Kinsei. Todos los derechos reservados. Diseñado para amantes del stock muerto con criterio elevado.
+            </p>
+
+            <div class="flex space-x-4 text-kinsei-gold text-lg">
+                <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-pinterest"></i></a>
+                <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPT PRINCIPAL E INTERACCIONES -->
+    <script>
+        // --- 1. TOAST NOTIFICATION ---
+        function triggerToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-msg').textContent = message;
+            
+            toast.classList.remove('translate-y-32', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-32', 'opacity-0');
+            }, 4000);
+        }
+
+        // --- 2. SINTETIZADOR DE AUDIO AMBIENTAL (Web Audio API) ---
+        let audioCtx = null;
+        let isPlayingAudio = false;
+        let oscillator = null;
+
+        function toggleAudio() {
+            const icon = document.getElementById('audio-icon');
+            if (!isPlayingAudio) {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(216, audioCtx.currentTime); // Frecuencia 216Hz
+                gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                
+                isPlayingAudio = true;
+                icon.className = "fa-solid fa-volume-high";
+                triggerToast('Audio Activado', 'Tono meditativo Zen de fondo activado.');
+            } else {
+                if (oscillator) {
+                    oscillator.stop();
+                }
+                isPlayingAudio = false;
+                icon.className = "fa-solid fa-volume-xmark";
+                triggerToast('Audio Pausado', 'Sonido ambiental desactivado.');
+            }
+        }
+
+        // --- 3. PARTÍCULAS DORADAS DE FONDO (CANVAS) ---
+        const particleCanvas = document.getElementById('particle-canvas');
+        const pCtx = particleCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeParticleCanvas() {
+            particleCanvas.width = window.innerWidth;
+            particleCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeParticleCanvas);
+        resizeParticleCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * particleCanvas.width;
+                this.y = Math.random() * particleCanvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * -0.6 - 0.1;
+                this.opacity = Math.random() * 0.7 + 0.3;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.y < 0) {
+                    this.y = particleCanvas.height;
+                    this.x = Math.random() * particleCanvas.width;
+                }
+            }
+            draw() {
+                pCtx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
+                pCtx.beginPath();
+                pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                pCtx.fill();
+            }
+        }
+
+        for (let i = 0; i < 45; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // --- 4. THREE.JS: MODELO DE LA GRULLA ORIGAMI 3D REAL ---
+        let scene, camera, renderer, craneGroup, leftWing, rightWing;
+
+        function initThreeCrane() {
+            const container = document.getElementById('three-container');
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 7.5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Luces
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xD4AF37, 2.5);
+            dirLight.position.set(5, 10, 7);
+            scene.add(dirLight);
+
+            const fillLight = new THREE.DirectionalLight(0x223355, 1.5);
+            fillLight.position.set(-5, -5, -5);
+            scene.add(fillLight);
+
+            // Grupo Principal
+            craneGroup = new THREE.Group();
+
+            const origamiMaterial = new THREE.MeshStandardMaterial({
+                color: 0x181e2b,
+                roughness: 0.2,
+                metalness: 0.8,
+                side: THREE.DoubleSide
+            });
+
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0xD4AF37,
+                linewidth: 2
+            });
+
+            // Función constructora para facetado origami
+            function createFacetMesh(vertices, indices) {
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.setIndex(indices);
+                geometry.computeVertexNormals();
+
+                const group = new THREE.Group();
+                const mesh = new THREE.Mesh(geometry, origamiMaterial);
+                const wireframe = new THREE.WireframeGeometry(geometry);
+                const line = new THREE.LineSegments(wireframe, lineMaterial);
+
+                group.add(mesh);
+                group.add(line);
+                return group;
+            }
+
+            // --- Cuerpo central ---
+            const bodyVerts = [
+                0, 0.2, 1.8,     // 0: Cola
+                0, 0.8, 0,       // 1: Espalda
+                0, -0.6, 0,      // 2: Vientre
+                -0.6, 0, 0,      // 3: Izq
+                0.6, 0, 0,       // 4: Der
+                0, 0.6, -1.2     // 5: Cuello base
+            ];
+            const bodyIndices = [
+                0, 1, 3,  0, 3, 2,  0, 4, 1,  0, 2, 4,
+                1, 5, 3,  3, 5, 2,  1, 4, 5,  4, 2, 5
+            ];
+            craneGroup.add(createFacetMesh(bodyVerts, bodyIndices));
+
+            // --- Cuello, Cabeza y Pico ---
+            const neckVerts = [
+                0, 0.6, -1.2,    // 0: Base
+                0, 2.2, -2.2,    // 1: Corona
+                0.15, 1.4, -1.7, // 2: Lado derecho
+                -0.15, 1.4, -1.7, // 3: Lado izquierdo
+                0, 1.9, -2.7     // 4: Pico punta
+            ];
+            const neckIndices = [
+                0, 1, 2,  0, 3, 1,
+                1, 4, 2,  1, 3, 4
+            ];
+            craneGroup.add(createFacetMesh(neckVerts, neckIndices));
+
+            // --- Ala Izquierda ---
+            leftWing = new THREE.Group();
+            const leftWingVerts = [
+                0, 0.5, 0.4,     // 0: Base cuerpo
+                -3.2, 1.2, -0.2, // 1: Punta ala
+                0, 0.5, -0.8,    // 2: Base delantera
+                -1.8, 0.2, 0.6   // 3: Pliegue inferior
+            ];
+            const leftWingIndices = [
+                0, 1, 2,
+                0, 3, 1
+            ];
+            leftWing.add(createFacetMesh(leftWingVerts, leftWingIndices));
+            craneGroup.add(leftWing);
+
+            // --- Ala Derecha ---
+            rightWing = new THREE.Group();
+            const rightWingVerts = [
+                0, 0.5, 0.4,    // 0: Base cuerpo
+                3.2, 1.2, -0.2, // 1: Punta ala
+                0, 0.5, -0.8,   // 2: Base delantera
+                1.8, 0.2, 0.6   // 3: Pliegue inferior
+            ];
+            const rightWingIndices = [
+                0, 2, 1,
+                0, 1, 3
+            ];
+            rightWing.add(createFacetMesh(rightWingVerts, rightWingIndices));
+            craneGroup.add(rightWing);
+
+            scene.add(craneGroup);
+
+            // Control de rotación con cursor
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            container.addEventListener('mousedown', () => isDragging = true);
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaMove = {
+                        x: e.clientX - previousMousePosition.x,
+                        y: e.clientY - previousMousePosition.y
+                    };
+                    craneGroup.rotation.y += deltaMove.x * 0.01;
+                    craneGroup.rotation.x += deltaMove.y * 0.01;
+                }
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            window.addEventListener('mouseup', () => isDragging = false);
+
+            animateThree();
+        }
+
+        let wingAngle = 0;
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            if (craneGroup) {
+                craneGroup.rotation.y += 0.005;
+
+                // Animación de aleteo sutil
+                wingAngle += 0.03;
+                const flap = Math.sin(wingAngle) * 0.08;
+                if (leftWing) leftWing.rotation.z = flap;
+                if (rightWing) rightWing.rotation.z = -flap;
+            }
+            renderer.render(scene, camera);
+        }
+
+        function refoldCrane() {
+            if (craneGroup) {
+                craneGroup.rotation.set(0, 0, 0);
+                triggerToast('Grulla Re-plegada', 'Forma origami restaurada.');
+            }
+        }
+
+        // --- 5. SIMULADOR INTERACTIVO DE KINTSUGI ---
+        const kCanvas = document.getElementById('kintsugi-canvas');
+        const kCtx = kCanvas.getContext('2d');
+        let isDrawing = false;
+        let drawnPixels = 0;
+
+        function drawCeramicPiece() {
+            kCtx.clearRect(0, 0, kCanvas.width, kCanvas.height);
+
+            // Vasija cerámica
+            kCtx.fillStyle = '#1A202C';
+            kCtx.beginPath();
+            kCtx.arc(300, 300, 220, 0, Math.PI * 2);
+            kCtx.fill();
+
+            // Grieta inicial
+            kCtx.strokeStyle = '#05070A';
+            kCtx.lineWidth = 8;
+            kCtx.beginPath();
+            kCtx.moveTo(120, 180);
+            kCtx.lineTo(280, 300);
+            kCtx.lineTo(480, 220);
+            kCtx.moveTo(280, 300);
+            kCtx.lineTo(340, 480);
+            kCtx.stroke();
+        }
+
+        drawCeramicPiece();
+
+        function repair(e) {
+            if (!isDrawing) return;
+            const rect = kCanvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (kCanvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (kCanvas.height / rect.height);
+
+            kCtx.strokeStyle = '#FFD700';
+            kCtx.lineWidth = 10;
+            kCtx.lineCap = 'round';
+            kCtx.beginPath();
+            kCtx.arc(x, y, 6, 0, Math.PI * 2);
+            kCtx.fillStyle = '#FFD700';
+            kCtx.fill();
+
+            drawnPixels++;
+            const progress = Math.min(100, Math.floor((drawnPixels / 120) * 100));
+            document.getElementById('repair-progress').textContent = `Progreso: ${progress}%`;
+
+            if (progress >= 100) {
+                document.getElementById('repair-title').textContent = "Sartén de Hierro Fundido 1988";
+                document.getElementById('repair-desc').textContent = "¡Has completado la restauración Kintsugi! Esta pieza virgen de stock muerto ha sido desbloqueada de nuestros depósitos.";
+                document.getElementById('repair-details').classList.remove('hidden');
+            }
+        }
+
+        kCanvas.addEventListener('mousedown', () => isDrawing = true);
+        kCanvas.addEventListener('mouseup', () => isDrawing = false);
+        kCanvas.addEventListener('mousemove', repair);
+
+        function resetKintsugi() {
+            drawnPixels = 0;
+            document.getElementById('repair-progress').textContent = "Progreso: 0%";
+            document.getElementById('repair-title').textContent = "Objeto Encriptado";
+            document.getElementById('repair-details').classList.add('hidden');
+            drawCeramicPiece();
+        }
+
+        // --- 6. FILTRO DE GALERÍA DE PRODUCTOS ---
+        function filterGallery(cat) {
+            const items = document.querySelectorAll('.gallery-item');
+            const btns = ['all', 'zapatillas', 'cocina', 'vintage'];
+
+            btns.forEach(b => {
+                const btn = document.getElementById('filter-' + b);
+                if (b === cat) {
+                    btn.className = "px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-kinsei-gold text-kinsei-bg transition-all";
+                } else {
+                    btn.className = "px-6 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider glass-panel text-kinsei-ivory hover:border-kinsei-gold transition-all";
+                }
+            });
+
+            items.forEach(item => {
+                if (cat === 'all' || item.getAttribute('data-category') === cat) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // --- 7. BUSCADOR DE NOSTALGIA (TEST INTERACTIVO) ---
+        const quizData = [
+            {
+                q: "¿Qué tipo de objeto te produce mayor nostalgia o refugio?",
+                options: [
+                    { text: "Zapatillas icónicas que usabas en los 90s", type: "zapatillas" },
+                    { text: "Utensilios de cocina pesados hechos para durar", type: "cocina" },
+                    { text: "Mecanismos y componentes analógicos de precisión", type: "vintage" }
+                ]
+            },
+            {
+                q: "¿Qué cualidad valoras más en un objeto personal?",
+                options: [
+                    { text: "La forma perfecta y estética del catálogo original", type: "zapatillas" },
+                    { text: "La robustez inalterable de los materiales nobles", type: "cocina" },
+                    { text: "La precisión mecánica que ya no se fabrica hoy", type: "vintage" }
+                ]
+            }
+        ];
+
+        let currentStep = 0;
+
+        function renderQuiz() {
+            const data = quizData[currentStep];
+            document.getElementById('quiz-progress-text').textContent = `Paso ${currentStep + 1} de 2`;
+            document.getElementById('quiz-progress-bar').style.width = `${((currentStep + 1) / 2) * 100}%`;
+            document.getElementById('quiz-question').textContent = data.q;
+
+            const optsContainer = document.getElementById('quiz-options');
+            optsContainer.innerHTML = '';
+
+            data.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "p-5 rounded-2xl border border-kinsei-gold/30 hover:border-kinsei-gold bg-kinsei-bg/40 text-left text-xs font-medium text-kinsei-ivory hover:bg-kinsei-gold/10 transition-all";
+                btn.textContent = opt.text;
+                btn.onclick = () => nextQuiz(opt.type);
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        function nextQuiz(type) {
+            currentStep++;
+            if (currentStep < quizData.length) {
+                renderQuiz();
+            } else {
+                showQuizResult(type);
+            }
+        }
+
+        function showQuizResult(type) {
+            document.getElementById('quiz-step').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+
+            if (type === 'zapatillas') {
+                document.getElementById('result-title').textContent = "Sneakers Retro Archivo '94";
+                document.getElementById('result-desc').textContent = "Tu perfil muestra una alta apreciación por el diseño urbano de culto y las formas originales de calzado descontinuadas.";
+            } else if (type === 'cocina') {
+                document.getElementById('result-title').textContent = "Sartén de Hierro Fundido 1988";
+                document.getElementById('result-desc').textContent = "Echas de menos las herramientas culinarias hechas con peso, alma y durabilidad generacional.";
+            } else {
+                document.getElementById('result-title').textContent = "Componente Mecánico de Precisión";
+                document.getElementById('result-desc').textContent = "Valoras la ingeniería analógica perfecta que la fabricación masiva actual decidió simplificar.";
+            }
+        }
+
+        function resetQuiz() {
+            currentStep = 0;
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('quiz-step').classList.remove('hidden');
+            renderQuiz();
+        }
+
+        // Inicializar componentes al cargar la ventana
+        window.onload = function () {
+            initThreeCrane();
+            renderQuiz();
+        }
+    </script>
+</body>
+</html>
